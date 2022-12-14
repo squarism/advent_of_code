@@ -1,32 +1,12 @@
-<img src="./.assets/christmas_ferris.png" width="164">
+## TLDR
 
-# 🎄 Advent of Code {year}
+```sh
+cargo scaffold <day>
+cargo solve <day>
+cargo test --bin 01
 
-Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.rust-lang.org/).
-
-<!--- advent_readme_stars table --->
-
----
-
-## Template setup
-
-This template supports all major OS (macOS, Linux, Windows).
-
-### Create your repository 📝
-
-1.  Open [the template repository](https://github.com/fspoettel/advent-of-code-rust) on Github.
-2.  Click [Use this template](https://github.com/fspoettel/advent-of-code-rust/generate) and create your repository.
-3.  Clone your repository to your computer.
-
-### Setup rust 💻
-
-1.  Install the [Rust toolchain](https://www.rust-lang.org/tools/install).
-2.  (recommended) Install the [rust-analyzer](https://rust-analyzer.github.io/manual.html) extension for your code editor.
-3.  (optional) Install a native debugger. If you are using VS Code, [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) is a good option.
-
----
-
-✨ You can start solving puzzles now! Head to the [Usage section](#usage) to see how to use this template. If you like, you can configure [some optional features](#optional-template-features).
+bacon test -- --bin 01
+```
 
 ## Usage
 
@@ -49,31 +29,6 @@ Individual solutions live in the `./src/bin/` directory as separate binaries.
 Every [solution](https://github.com/fspoettel/advent-of-code-rust/blob/main/src/bin/scaffold.rs#L11-L41) has _unit tests_ referencing its _example_ file. Use these unit tests to develop and debug your solution against the example input. For some puzzles, it might be easier to forgo the example file and hardcode inputs into the tests.
 
 When editing a solution, `rust-analyzer` will display buttons for running / debugging unit tests above the unit test blocks.
-
-### Download input & description for a day
-
-> **Note**  
-> This command requires [installing the aoc-cli crate](#download-puzzle-inputs-via-aoc-cli).
-
-```sh
-# example: `cargo download 1`
-cargo download <day>
-
-# output:
-# Loaded session cookie from "/Users/<snip>/.adventofcode.session".
-# Fetching puzzle for day 1, 2022...
-# Saving puzzle description to "src/puzzles/01.md"...
-# Downloading input for day 1, 2022...
-# Saving puzzle input to "src/inputs/01.txt"...
-# Done!
-# ---
-# 🎄 Successfully wrote input to "src/inputs/01.txt".
-# 🎄 Successfully wrote puzzle to "src/puzzles/01.md".
-```
-
-To download inputs for previous years, append the `--year/-y` flag. _(example: `cargo download 1 --year 2020`)_
-
-Puzzle descriptions are stored in `src/puzzles` as markdown files. Puzzle inputs are not checked into git. [Reasoning](https://old.reddit.com/r/adventofcode/comments/k99rod/sharing_input_data_were_we_requested_not_to/gf2ukkf/?context=3).
 
 ### Run solutions for a day
 
@@ -143,7 +98,7 @@ cargo clippy
 
 ### Read puzzle description in terminal
 
-> **Note**  
+> **Note**
 > This command requires [installing the aoc-cli crate](#download-puzzle-inputs-via-aoc-cli).
 
 ```sh
