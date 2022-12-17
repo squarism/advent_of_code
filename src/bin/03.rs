@@ -1,8 +1,8 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 #![allow(dead_code)]
+#![allow(unused)]
 
 use itertools::Itertools;
+use std::collections::HashSet;
 
 struct Rucksack {
     left: String,
@@ -40,13 +40,19 @@ fn split_line(line: &str) -> Rucksack {
     }
 }
 
+fn score_character(character: char) -> u32 {
+    match character {
+        'a'..='z' => character as u32 - 'a' as u32 + 1,
+        'A'..='Z' => character as u32 - 'A' as u32 + 27,
+        _ => 0,
+    }
+}
+
 pub fn part_one(input: &str) -> Option<u32> {
     let mut rucksack;
     let mut score = 0;
 
     for line in input.lines() {
-        // println!("line: {}", line);
-
         rucksack = split_line(line);
         rucksack.unique_characters();
 
@@ -54,12 +60,7 @@ pub fn part_one(input: &str) -> Option<u32> {
 
         match common {
             Some(c) => {
-                // println!("The common element is {}", c);
-                score += match c {
-                    'a'..='z' => c as u32 - 'a' as u32 + 1,
-                    'A'..='Z' => c as u32 - 'A' as u32 + 27,
-                    _ => 0,
-                };
+                score += score_character(c);
             }
             None => {
                 println!("There is no common element")
@@ -70,8 +71,40 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(score)
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u32> {
+    // group lines into threes
+    let groups = input.lines().into_iter().chunks(3);
+
+    // set up a list of matched characters to score later
+    let mut to_score = vec![] as Vec<char>;
+
+    for group in &groups {
+        // a set of 3 rucksacks
+        let set = group.collect::<Vec<&str>>();
+
+        // assemble the different rucksacks
+        let first_chars: HashSet<_> = set[0].chars().collect();
+        let mut second_chars: HashSet<_> = set[1].chars().collect();
+        let mut third_chars: HashSet<_> = set[2].chars().collect();
+
+        // look for the letter in each sack
+        'outer: for c in first_chars {
+            if second_chars.contains(&c) && third_chars.contains(&c) {
+                to_score.push(c);
+
+                // stop if found in other two
+                break 'outer;
+            }
+        }
+    }
+
+    // score the list
+    let mut score = 0;
+    for character in to_score {
+        score += score_character(character);
+    }
+
+    Some(score)
 }
 
 fn main() {
@@ -90,9 +123,9 @@ mod tests {
         assert_eq!(part_one(&input), Some(157));
     }
 
-    // #[test]
-    // fn test_part_two() {
-    //     let input = advent_of_code::read_file("examples", 3);
-    //     assert_eq!(part_two(&input), None);
-    // }
+    #[test]
+    fn test_part_two() {
+        let input = advent_of_code::read_file("examples", 3);
+        assert_eq!(part_two(&input), Some(70));
+    }
 }
