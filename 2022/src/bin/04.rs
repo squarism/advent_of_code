@@ -54,7 +54,26 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let mut overlap_count = 0;
+
+    for line in input.lines() {
+        let assignment = parse_line(line);
+
+        let mut first = assignment.first;
+        let mut second = assignment.second;
+
+        // check if any part overlaps
+        let first_contains_second = first.contains(second.start()) || first.contains(second.end());
+
+        // check if any part overlaps
+        let second_contains_first = second.contains(first.start()) || second.contains(first.end());
+
+        // but maybe they are both true.
+        if first_contains_second || second_contains_first {
+            overlap_count += 1;
+        }
+    }
+    Some(overlap_count)
 }
 
 fn main() {
@@ -73,11 +92,11 @@ mod tests {
         assert_eq!(part_one(&input), Some(2));
     }
 
-    // #[test]
-    // fn test_part_two() {
-    //     let input = advent_of_code::read_file("examples", 4);
-    //     assert_eq!(part_two(&input), None);
-    // }
+    #[test]
+    fn test_part_two() {
+        let input = advent_of_code::read_file("examples", 4);
+        assert_eq!(part_two(&input), Some(4));
+    }
 
     #[test]
     fn test_parse_line() {
