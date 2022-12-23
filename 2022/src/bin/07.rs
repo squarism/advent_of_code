@@ -1,5 +1,6 @@
 #![allow(unused)]
 use indoc::indoc;
+use itertools::Itertools;
 use regex::Regex;
 use std::collections::HashSet;
 use std::path::Path;
@@ -20,8 +21,34 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(total)
 }
 
+// total disk space is 70MB, need 30MB.
+// get total of / as used_space
+// subtract used_space from 70_000_000 to find free_space
+// the update is 30_000_000
+// find smallest directory over or equal to needed_space
 pub fn part_two(input: &str) -> Option<usize> {
-    None
+    let parsed = parse(input);
+    let tree = to_file_tree(parsed);
+    let mut sizes = dir_size(tree);
+
+    let root = sizes.iter().find(|f| f.name == "/").expect("cannot find /");
+    let used_space = root.size;
+
+    let free_space = 70_000_000 - used_space;
+    let needed_space = 30_000_000 - free_space;
+
+    let sorted_sizes: Vec<DirectoryTotal> = sizes
+        .iter()
+        .sorted_by(|a, b| a.size.cmp(&b.size))
+        .cloned()
+        .collect();
+
+    let candidate_index = sorted_sizes
+        .iter()
+        .position(|f| f.size >= needed_space)
+        .expect("no candidate index");
+
+    Some(sorted_sizes[candidate_index].size)
 }
 
 fn main() {
@@ -43,7 +70,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 7);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(24933642));
     }
 
     // ugh i do NOT want to write a parser
@@ -174,7 +201,7 @@ struct File {
     size: usize,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct DirectoryTotal {
     name: String,
     size: usize,
@@ -198,10 +225,6 @@ struct Directory {
 // if the command is ls, set state machine is_listing on
 // then when you run into a command again, flip is_listing off
 // if in directory listing, parse each line as a file, ignore dirs
-
-// a horrible state machine
-// let mut in_listing = false;
-// in_listing = false;
 
 // 🐶 no state, only parse, might be tempting to start doing state machine stuff
 fn parse(input: &str) -> Vec<Operation> {
