@@ -26,7 +26,23 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    None
+    let mut grid = grid_it(input);
+
+    let mut max_scenic_score = 0;
+    for y in (0..grid.length) {
+        for x in (0..grid.length) {
+            let index = y * grid.length + x;
+            let treehouse = grid.items[index];
+
+            let paths = walk_to_edges(grid.clone(), x, y);
+            let scenic_score = scenic_score(treehouse, paths);
+            if scenic_score > max_scenic_score {
+                max_scenic_score = scenic_score;
+            }
+        }
+    }
+
+    Some(max_scenic_score)
 }
 
 fn main() {
@@ -60,7 +76,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 8);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(8));
     }
 
     #[test]
@@ -109,6 +125,29 @@ mod tests {
 
         let expected = false;
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_scenic_score() {
+        let paths_to_edges = vec![vec![3, 5, 3], vec![4, 9], vec![3], vec![3, 3]];
+        let result = scenic_score(5, paths_to_edges);
+
+        let expected = 8;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_scenic_length() {
+        let path = [1, 2, 3, 4, 11, 12];
+        let index = find_first_blocked(10, &path);
+        assert_eq!(index, 5);
+    }
+
+    #[test]
+    fn test_scenic_length_to_edge() {
+        let path = [3, 3];
+        let index = find_first_blocked(5, &path);
+        assert_eq!(index, 2);
     }
 }
 
@@ -213,4 +252,20 @@ fn is_visible(source_tree: usize, paths_to_edges: Vec<Vec<usize>>) -> bool {
     }
 
     false
+}
+
+fn find_first_blocked(val: usize, vec: &[usize]) -> usize {
+    for (i, &v) in vec.iter().enumerate() {
+        if v >= val {
+            return i + 1;
+        }
+    }
+    vec.len()
+}
+
+fn scenic_score(treehouse: usize, paths: Vec<Vec<usize>>) -> usize {
+    paths
+        .iter()
+        .map(|path| find_first_blocked(treehouse, path))
+        .product()
 }
