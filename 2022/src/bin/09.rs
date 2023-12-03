@@ -28,13 +28,123 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    None
+    let mut rope1 = Point { x: 0, y: 0 };
+    let mut rope2 = Point { x: 0, y: 0 };
+    let mut rope3 = Point { x: 0, y: 0 };
+    let mut rope4 = Point { x: 0, y: 0 };
+    let mut rope5 = Point { x: 0, y: 0 };
+    let mut rope6 = Point { x: 0, y: 0 };
+    let mut rope7 = Point { x: 0, y: 0 };
+    let mut rope8 = Point { x: 0, y: 0 };
+    let mut rope9 = Point { x: 0, y: 0 };
+    let mut rope10 = Point { x: 0, y: 0 };
+
+    let mut tail_locations: Vec<Point> = vec![rope9.clone()];
+
+    // making a chain of rope is just a bunch of segments
+    for line in input.lines() {
+        let mut split = line.split_whitespace();
+        let direction = split.next().unwrap().to_owned();
+        let count: u32 = split.next().unwrap().parse().unwrap();
+
+        for i in 0..count {
+            rope1 = move_point(rope1, &direction);
+            rope2 = tail_target(rope1.clone(), rope2);
+            rope3 = tail_target(rope2.clone(), rope3);
+            rope4 = tail_target(rope3.clone(), rope4);
+            rope5 = tail_target(rope4.clone(), rope5);
+            rope6 = tail_target(rope5.clone(), rope6);
+            rope7 = tail_target(rope6.clone(), rope7);
+            rope8 = tail_target(rope7.clone(), rope8);
+            rope9 = tail_target(rope8.clone(), rope9);
+            rope10 = tail_target(rope9.clone(), rope10);
+
+            tail_locations.push(rope10.clone());
+        }
+    }
+
+    let count = count_visits(tail_locations);
+    Some(count)
 }
 
 fn main() {
     let input = &advent_of_code::read_file("inputs", 9);
     advent_of_code::solve!(1, part_one, input);
     advent_of_code::solve!(2, part_two, input);
+}
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Ord for Point {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.x.cmp(&other.x).then(self.y.cmp(&other.y))
+    }
+}
+
+impl PartialOrd for Point {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[derive(Debug)]
+struct Rope {
+    head: Point,
+    tail: Point,
+}
+
+fn tail_target(head: Point, tail: Point) -> Point {
+    let x_diff = head.x - tail.x;
+    let y_diff = head.y - tail.y;
+
+    let x_movement = match x_diff {
+        _ if i32::abs(x_diff) == 1 && i32::abs(y_diff) <= 1 => 0,
+        _ if x_diff >= 1 => 1,
+        _ if x_diff <= -1 => -1,
+        _ => 0,
+    };
+
+    let y_movement = match y_diff {
+        _ if i32::abs(x_diff) <= 1 && i32::abs(y_diff) == 1 => 0,
+        _ if y_diff >= 1 => 1,
+        _ if y_diff <= -1 => -1,
+        _ => 0,
+    };
+
+    let x = tail.x + x_movement;
+    let y = tail.y + y_movement;
+
+    Point { x, y }
+}
+
+fn count_visits(movements: Vec<Point>) -> usize {
+    movements.into_iter().sorted().dedup().count()
+}
+
+fn move_point(point: Point, direction: &str) -> Point {
+    match direction {
+        "R" => Point {
+            x: point.x + 1,
+            y: point.y,
+        },
+        "L" => Point {
+            x: point.x - 1,
+            y: point.y,
+        },
+        "U" => Point {
+            x: point.x,
+            y: point.y + 1,
+        },
+        "D" => Point {
+            x: point.x,
+            y: point.y - 1,
+        },
+        _ => point,
+    }
 }
 
 #[cfg(test)]
@@ -136,79 +246,5 @@ mod tests {
 
         let expected = Point { x: 2, y: 0 };
         assert_eq!(expected, result);
-    }
-}
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-struct Point {
-    x: i32,
-    y: i32,
-}
-
-impl Ord for Point {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.x.cmp(&other.x).then(self.y.cmp(&other.y))
-    }
-}
-
-impl PartialOrd for Point {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-#[derive(Debug)]
-struct Rope {
-    head: Point,
-    tail: Point,
-}
-
-fn tail_target(head: Point, tail: Point) -> Point {
-    let x_diff = head.x - tail.x;
-    let y_diff = head.y - tail.y;
-
-    let x_movement = match x_diff {
-        _ if i32::abs(x_diff) == 1 && i32::abs(y_diff) <= 1 => 0,
-        _ if x_diff >= 1 => 1,
-        _ if x_diff <= -1 => -1,
-        _ => 0,
-    };
-
-    let y_movement = match y_diff {
-        _ if i32::abs(x_diff) <= 1 && i32::abs(y_diff) == 1 => 0,
-        _ if y_diff >= 1 => 1,
-        _ if y_diff <= -1 => -1,
-        _ => 0,
-    };
-
-    let x = tail.x + x_movement;
-    let y = tail.y + y_movement;
-
-    Point { x, y }
-}
-
-fn count_visits(movements: Vec<Point>) -> usize {
-    movements.into_iter().sorted().dedup().count()
-}
-
-fn move_point(point: Point, direction: &str) -> Point {
-    match direction {
-        "R" => Point {
-            x: point.x + 1,
-            y: point.y,
-        },
-        "L" => Point {
-            x: point.x - 1,
-            y: point.y,
-        },
-        "U" => Point {
-            x: point.x,
-            y: point.y + 1,
-        },
-        "D" => Point {
-            x: point.x,
-            y: point.y - 1,
-        },
-        _ => point,
     }
 }
