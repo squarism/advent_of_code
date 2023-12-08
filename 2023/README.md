@@ -8,6 +8,12 @@ cargo solve <day>
 cargo test --bin 01
 
 bacon test -- --bin 01
+
+# or something like if bacon is annoying
+watchexec -c -- cargo test --bin 01 -- --nocapture
+
+# or something to focus on a test
+watchexec -c -- cargo test --bin 01 -- --nocapture test_name_here
 ```
 
 ## Usage
