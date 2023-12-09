@@ -2,9 +2,10 @@ advent_of_code::solution!(3);
 
 use itertools::Itertools;
 use regex::Regex;
+use std::collections::HashMap;
 
-#[derive(Clone, Debug, PartialEq)]
-struct Point {
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Point {
     x: usize,
     y: usize,
 }
@@ -29,8 +30,34 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(hits.iter().fold(0, |acc, n| acc + n.value))
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let number_positions = number_positions(input);
+
+    let mut hits: Vec<(usize, Point)> = vec![];
+
+    for span in number_positions {
+        if has_symbol_neighbor(input, span.clone()) {
+            if let Some(gear) = gear_neighbor(input, span.clone()) {
+                hits.push((span.value, gear));
+            }
+        }
+    }
+
+    let mut gear_groups: HashMap<Point, Vec<usize>> = HashMap::new();
+    for (num, point) in hits {
+        gear_groups.entry(point).or_default().push(num);
+    }
+
+    // We have a weird HashMap here of Structs and numbers
+    // Point { x: 3, y: 4, }: [ 617, ] ...
+    // This one is by itself.  So, we filter and pair them up to find the pairs.
+    let pairs: Vec<usize> = gear_groups
+        .iter()
+        .filter(|&(_key, value)| value.len() == 2)
+        .map(|(_key, value)| value[0] * value[1])
+        .collect();
+
+    Some(pairs.iter().sum::<usize>())
 }
 
 pub fn dimensions(grid: &str) -> (usize, usize) {
@@ -132,6 +159,85 @@ pub fn is_symbol(character: &char) -> bool {
     !normals.contains(character)
 }
 
+pub fn gear_neighbor(grid: &str, span: NumberString) -> Option<Point> {
+    // this makes a grid like [y][x] for some reason
+    let split_grid: Vec<Vec<char>> = grid.lines().map(|line| line.chars().collect()).collect();
+    let dimensions = dimensions(grid);
+
+    // the naive way of not removing self points
+    for point in span.positions {
+        // search W
+        if point.x > 0 && split_grid[point.y][point.x - 1] == '*' {
+            return Some(Point {
+                x: point.x - 1,
+                y: point.y,
+            });
+        }
+
+        // search NW
+        if point.x > 0 && point.y != 0 && split_grid[point.y - 1][point.x - 1] == '*' {
+            return Some(Point {
+                x: point.x - 1,
+                y: point.y - 1,
+            });
+        }
+
+        // search N
+        if point.y > 0 && split_grid[point.y - 1][point.x] == '*' {
+            return Some(Point {
+                x: point.x,
+                y: point.y - 1,
+            });
+        }
+
+        // search NE
+        if point.x < dimensions.0 - 1 && point.y > 0 && split_grid[point.y - 1][point.x + 1] == '*'
+        {
+            return Some(Point {
+                x: point.x + 1,
+                y: point.y - 1,
+            });
+        }
+
+        // search E
+        if point.x < dimensions.0 - 1 && split_grid[point.y][point.x + 1] == '*' {
+            return Some(Point {
+                x: point.x + 1,
+                y: point.y,
+            });
+        }
+
+        // search SE
+        if point.x < dimensions.0 - 1
+            && point.y < dimensions.1 - 1
+            && split_grid[point.y + 1][point.x + 1] == '*'
+        {
+            return Some(Point {
+                x: point.x + 1,
+                y: point.y + 1,
+            });
+        }
+
+        // search S
+        if point.y < dimensions.1 - 1 && split_grid[point.y + 1][point.x] == '*' {
+            return Some(Point {
+                x: point.x,
+                y: point.y + 1,
+            });
+        }
+
+        // search SW
+        if point.x > 0 && point.y < dimensions.1 - 1 && split_grid[point.y + 1][point.x - 1] == '*'
+        {
+            return Some(Point {
+                x: point.x - 1,
+                y: point.y + 1,
+            });
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use indoc::indoc;
@@ -147,7 +253,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(467835));
     }
 
     #[test]
@@ -237,5 +343,28 @@ mod tests {
 
         let result = has_symbol_neighbor(grid, span);
         assert!(result);
+    }
+
+    #[test]
+    fn test_gear_neighbor() {
+        let grid = indoc! {"
+            ......
+            .234..
+            ...*..
+            ...100
+            ......
+        "};
+        let span = NumberString {
+            value: 234,
+            positions: vec![
+                Point { x: 1, y: 1 },
+                Point { x: 2, y: 1 },
+                Point { x: 3, y: 1 },
+            ],
+        };
+
+        let result = gear_neighbor(grid, span);
+        let expected = Some(Point { x: 3, y: 2 });
+        assert_eq!(result, expected);
     }
 }
