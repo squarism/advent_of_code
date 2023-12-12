@@ -46,8 +46,43 @@ pub fn part_one(input: &str) -> Option<isize> {
     Some(min)
 }
 
-pub fn part_two(_input: &str) -> Option<usize> {
-    None
+// this might be the slowest code I have ever written
+pub fn part_two(input: &str) -> Option<isize> {
+    let almanac = parse(input);
+
+    let seeds_ranges = part_two_seeds(almanac.seeds);
+
+    let mut min = isize::MAX;
+
+    let mut modulo_counter = 1;
+
+    for seeds in seeds_ranges {
+        println!("starting seed range: {}", seeds.len());
+        for seed in seeds {
+            let seed = seed as isize;
+            let soil = lookup(seed, almanac.seed_to_soil.clone());
+            let fert = lookup(soil, almanac.soil_to_fertilizer.clone());
+            let watr = lookup(fert, almanac.fertilizer_to_water.clone());
+            let lght = lookup(watr, almanac.water_to_light.clone());
+            let temp = lookup(lght, almanac.light_to_temperature.clone());
+            let humi = lookup(temp, almanac.temperature_to_humidity.clone());
+            let locn = lookup(humi, almanac.humidity_to_location.clone());
+
+            if modulo_counter % 1_000_000 == 0 {
+                modulo_counter = 1;
+                print!(".");
+            } else {
+                modulo_counter += 1;
+            }
+
+            if locn < min {
+                min = locn;
+                println!("New min: {}", min);
+            }
+        }
+    }
+
+    Some(min)
 }
 
 pub fn find_text(vector: &[&str], text: &str) -> Option<usize> {
@@ -154,6 +189,19 @@ pub fn parse(input: &str) -> Almanac {
     }
 }
 
+fn part_two_seeds(seeds: Vec<usize>) -> Vec<Vec<usize>> {
+    let groups: Vec<_> = seeds.chunks(2).collect();
+    groups
+        .iter()
+        .map(|group| {
+            let start = group.first().unwrap();
+            let length = group.get(1).unwrap();
+            let range: Vec<usize> = (*start..(*start + length)).collect();
+            range
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -167,7 +215,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(46));
     }
 
     #[test]
@@ -206,5 +254,13 @@ mod tests {
 
         let result = lookup(seed, range);
         assert_eq!(result, 14);
+    }
+
+    #[test]
+    fn test_part_two_seeds() {
+        let seeds = vec![79, 14, 55, 13];
+        let result = part_two_seeds(seeds);
+
+        assert_eq!(result.into_iter().concat().len(), 27);
     }
 }
